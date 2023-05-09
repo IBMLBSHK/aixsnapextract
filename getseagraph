@@ -1,0 +1,118 @@
+from PIL import Image, ImageDraw, ImageFont
+import json
+
+# load data from JSON file
+with open('test.log_adapter.json', 'r') as f:
+    data = json.load(f)
+
+# define the height of each section
+section_height = 200
+
+# create a new image
+image = Image.new('RGB', (1000, len(data) * section_height), color=(255, 255, 255))
+
+# get a drawing context
+draw = ImageDraw.Draw(image)
+
+# iterate over the keys in the data dictionary
+for i, key in enumerate(data.keys()):
+
+    #realadapter_name = data[key]['realadapter']['name']
+    vadapter_name = data[key]['vadapter']['name']
+
+    
+    # calculate the y-coordinates for this section
+    y1 = i * section_height + 100
+    y2 = y1 + 50
+
+    # draw the rectangles
+    # SEA rectangle
+    draw.rectangle([100, y1, 200, y2], outline=(0, 0, 0), width=2)
+  
+    # Vitraul adapter rectangle
+    draw.rectangle([500, y1, 600, y2], outline=(0, 0, 0), width=2)
+
+    # add label text for the SEA rectangles
+    font = ImageFont.load_default()
+    label = key
+    textwidth, textheight = draw.textsize(label, font)
+    x = 100 + (200 - 100 - textwidth) / 2
+    y = y1 + (y2 - y1 - textheight) / 2
+    draw.text((x, y), label, font=font, fill=(0, 0, 0))
+
+    label = 'SEA adapter'
+    textwidth, textheight = draw.textsize(label, font)
+    x = 100 + (200 - 100 - textwidth) / 2
+    y = y1 - textheight
+    draw.text((x, y), label, font=font, fill=(0, 0, 0))
+
+    # add label text for the Virtual adapter rectangles
+    label = vadapter_name
+    textwidth, textheight = draw.textsize(label, font)
+    x = 500 + (600 - 500 - textwidth) / 2
+    y = y1 + (y2 - y1 - textheight) / 2
+    draw.text((x, y), label, font=font, fill=(0, 0, 0))
+
+    label = 'Virtual adapter'
+    textwidth, textheight = draw.textsize(label, font)
+    x = 500 + (600 - 500 - textwidth) / 2
+    y = y1 - textheight
+    draw.text((x, y), label, font=font, fill=(0, 0, 0))
+    
+    # Extract the etherchannel adapter data
+    if 'etherchannel' in data[key]:
+        etherchannel_name = data[key]['etherchannel']['name']
+    else:
+        etherchannel_name = None
+        
+    # Extract the Real adapter data
+    if isinstance(data[key]['realadapter'], list):
+        # iterate over the list of dictionaries and extract the names
+        num_elements = len(data[key]['realadapter'])
+        j=0
+        for adapter_dict in data[key]['realadapter']:
+            # Draw Real adapter rectangle
+            draw.rectangle([300, y1, 400, y2], outline=(0, 0, 0), width=2)
+
+            label = adapter_dict['name']
+            textwidth, textheight = draw.textsize(label, font)
+            x = 300 + (400 - 300 - textwidth) / 2
+            y = y1 + (j*textheight + ( j + 1 )*2) 
+            draw.text((x, y), label, font=font, fill=(0, 0, 0))
+            j=j+1
+            
+        label = 'Etherchannel: ' + etherchannel_name
+        textwidth, textheight = draw.textsize(label, font)
+        x = 300 + (400 - 300 - textwidth) / 2
+        y = y1 - textheight
+        draw.text((x, y), label, font=font, fill=(0, 0, 0))
+            
+
+    else:
+        # if "realadapter" is not a list, extract the name directly
+        
+        # Etherchannel rectangle
+        # Real adapter rectangle
+        realadapter_name = data[key]['realadapter']['name']
+        draw.rectangle([300, y1, 400, y2], outline=(0, 0, 0), width=2)
+        # add label text for the Real adapter rectangles
+        label = realadapter_name
+        textwidth, textheight = draw.textsize(label, font)
+        x = 300 + (400 - 300 - textwidth) / 2
+        y = y1 + (y2 - y1 - textheight) / 2
+        draw.text((x, y), label, font=font, fill=(0, 0, 0))
+
+        label = 'Real adapter'
+        textwidth, textheight = draw.textsize(label, font)
+        x = 300 + (400 - 300 - textwidth) / 2
+        y = y1 - textheight
+        draw.text((x, y), label, font=font, fill=(0, 0, 0))
+
+    
+
+    # draw lines between the rectangles
+    draw.line((200, (y1+y2)//2, 300, (y1+y2)//2), fill=(0, 0, 0), width=2)
+    draw.line((400, (y1+y2)//2, 500, (y1+y2)//2), fill=(0, 0, 0), width=2)
+
+# show the image in a window
+image.show()
